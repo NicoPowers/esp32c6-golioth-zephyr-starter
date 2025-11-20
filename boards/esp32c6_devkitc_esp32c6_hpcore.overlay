@@ -1,0 +1,47 @@
+/*
+ * Copyright (c) 2025
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ {
+	aliases {
+		led0 = &green_led;
+		led1 = &red_led;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		green_led: led_0 {
+			gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
+			label = "Green LED";
+		};
+		red_led: led_1 {
+			gpios = <&gpio0 3 GPIO_ACTIVE_HIGH>;
+			label = "Red LED";
+		};
+	};
+};
+
+// used this as a reference: https://docs.zephyrproject.org/latest/build/dts/api/bindings/pinctrl/espressif%2Cesp32-pinctrl.html
+&pinctrl {
+	i2c0_custom: i2c0_custom {
+		group1 {
+			pinmux = <I2C0_SDA_GPIO6>, // as defined here https://github.com/zephyrproject-rtos/zephyr/blob/main/include/zephyr/dt-bindings/pinctrl/esp32c6-pinctrl.h
+				 <I2C0_SCL_GPIO7>;			
+			drive-open-drain;
+			output-enable;	
+		};
+	};
+};
+
+&i2c0 {
+	status = "okay";
+	pinctrl-0 = <&i2c0_custom>;	
+	clock-frequency = <100000>; /* 100kHz */
+
+	pressure_sensor: lps22df@5c {
+		compatible = "st,lps22df";
+		reg = <0x5c>;
+		status = "okay";
+	};
+};

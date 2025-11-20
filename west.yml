@@ -12,13 +12,15 @@ manifest:
       west-commands: scripts/west-commands.yml
       submodules: true
       import:
-        file: west-ncs.yml
+        file: west-zephyr.yml
         path-prefix: deps
         name-allowlist:
           - nrf
           - zephyr
           - cmsis_6
           - hal_nordic
+          - hal_espressif
+          - hal_st
           - mbedtls
           - mbedtls-nrf
           - mcuboot
@@ -32,25 +34,25 @@ manifest:
           - trusted-firmware-m
           - zcbor
 
-    - name: golioth-zephyr-boards
-      path: deps/modules/lib/golioth-boards
-      revision: v2.1.1
-      url: https://github.com/golioth/golioth-zephyr-boards
+    # - name: golioth-zephyr-boards
+    #   path: deps/modules/lib/golioth-boards
+    #   revision: v2.1.1
+    #   url: https://github.com/golioth/golioth-zephyr-boards
 
-    - name: libostentus
-      path: deps/modules/lib/libostentus
-      revision: v2.0.0
-      url: https://github.com/golioth/libostentus
+    # - name: libostentus
+    #   path: deps/modules/lib/libostentus
+    #   revision: v2.0.0
+    #   url: https://github.com/golioth/libostentus
 
     - name: zephyr-network-info
       path: deps/modules/lib/network-info
       revision: v1.2.0
       url: https://github.com/golioth/zephyr-network-info
 
-    - name: golioth-battery-monitor
-      path: deps/modules/lib/battery-monitor
-      revision: v1.1.0
-      url: https://github.com/golioth/battery-monitor
+    # - name: golioth-battery-monitor
+    #   path: deps/modules/lib/battery-monitor
+    #   revision: v1.1.0
+    #   url: https://github.com/golioth/battery-monitor
 
   self:
     path: app
