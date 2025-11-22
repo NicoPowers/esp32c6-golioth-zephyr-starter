@@ -2,5 +2,7 @@
     "cmake.ignoreCMakeListsMissing": true,
     "cmake.configureOnOpen": false,
     "cmake.enableAutomaticKitScan": false,
-    "cmake.sourceDirectory": "${workspaceFolder}/nonexistent"
+    "cmake.sourceDirectory": "${workspaceFolder}/nonexistent",
+    "zephyr-workbench.env.SOC_ROOT": [],
+    "zephyr-workbench.env.BOARD_ROOT": []
 }
