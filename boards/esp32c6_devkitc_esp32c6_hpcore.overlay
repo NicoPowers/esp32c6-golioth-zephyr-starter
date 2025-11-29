@@ -2,6 +2,10 @@
  * Copyright (c) 2025
  * SPDX-License-Identifier: Apache-2.0
  */
+ 
+#include <espressif/esp32c6/esp32c6_wroom_n4.dtsi>
+#include <espressif/partitions_0x0_default_4M.dtsi>
+
 
 / {
 	aliases {
@@ -18,6 +22,22 @@
 		red_led: led_1 {
 			gpios = <&gpio0 3 GPIO_ACTIVE_HIGH>;
 			label = "Red LED";
+		};
+	};
+
+	fstab {
+		compatible = "zephyr,fstab";
+
+		lfs1: lfs1 {
+			compatible = "zephyr,fstab,littlefs";
+			mount-point = "/lfs1";
+			partition = <&storage_partition>;
+			automount;
+			read-size = <16>;
+			prog-size = <16>;
+			cache-size = <64>;
+			lookahead-size = <32>;
+			block-cycles = <512>;
 		};
 	};
 };
@@ -44,4 +64,16 @@
 		reg = <0x5c>;
 		status = "okay";
 	};
+};
+
+&wifi {
+	status = "okay";
+};
+
+&uart0 {
+	status = "okay";
+};
+
+&trng0 {
+	status = "okay";
 };

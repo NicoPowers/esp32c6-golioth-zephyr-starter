@@ -7,7 +7,7 @@ manifest:
   projects:
     - name: golioth
       path: modules/lib/golioth-firmware-sdk
-      revision: v0.21.0
+      revision: v0.21.1
       url: https://github.com/golioth/golioth-firmware-sdk.git
       west-commands: scripts/west-commands.yml
       submodules: true
@@ -33,26 +33,12 @@ manifest:
           - tinycrypt
           - trusted-firmware-m
           - zcbor
-
-    # - name: golioth-zephyr-boards
-    #   path: deps/modules/lib/golioth-boards
-    #   revision: v2.1.1
-    #   url: https://github.com/golioth/golioth-zephyr-boards
-
-    # - name: libostentus
-    #   path: deps/modules/lib/libostentus
-    #   revision: v2.0.0
-    #   url: https://github.com/golioth/libostentus
+          - littlefs
 
     - name: zephyr-network-info
       path: deps/modules/lib/network-info
-      revision: v1.2.0
+      revision: v1.2.1
       url: https://github.com/golioth/zephyr-network-info
-
-    # - name: golioth-battery-monitor
-    #   path: deps/modules/lib/battery-monitor
-    #   revision: v1.1.0
-    #   url: https://github.com/golioth/battery-monitor
 
   self:
     path: app

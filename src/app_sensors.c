@@ -11,6 +11,8 @@ LOG_MODULE_REGISTER(app_sensors, LOG_LEVEL_DBG);
 #include <golioth/stream.h>
 #include <zcbor_encode.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/sensor.h>
+#include <zephyr/drivers/i2c.h>
 #include <zephyr/kernel.h>
 
 #include "app_sensors.h"
@@ -24,7 +26,12 @@ static const struct device *o_dev = DEVICE_DT_GET_ANY(golioth_ostentus);
 #endif
 
 static struct golioth_client *client;
+
 /* Add Sensor structs here */
+struct sensor_value pressure, temp;
+static unsigned int obs;
+
+const struct device *pressure_sensor = DEVICE_DT_GET(DT_NODELABEL(pressure_sensor));
 
 /* Callback for LightDB Stream */
 static void async_error_handler(struct golioth_client *client, enum golioth_status status,
@@ -42,25 +49,29 @@ static void async_error_handler(struct golioth_client *client, enum golioth_stat
 void app_sensors_read_and_stream(void)
 {
 	int err;
-
-	/* Golioth custom hardware for demos */
-	IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR, (
-		read_and_report_battery(client);
-		IF_ENABLED(CONFIG_LIB_OSTENTUS, (
-			ostentus_slide_set(o_dev,
-					   BATTERY_V,
-					   get_batt_v_str(),
-					   strlen(get_batt_v_str()));
-			ostentus_slide_set(o_dev,
-					   BATTERY_PCT,
-					   get_batt_pct_str(),
-					   strlen(get_batt_pct_str()));
-		));
-	));
+	int ret;
 
 	/* Send sensor data to Golioth */
-	/* For this demo, we just send counter data to Golioth */
-	static uint16_t counter;
+	/* Fetch all sensor channels */
+	ret = sensor_sample_fetch(pressure_sensor);
+	if (ret < 0) {
+		printf("Sensor sample update error: %d\n", ret);
+		return;
+	}
+
+	/* Get pressure channel */
+	ret = sensor_channel_get(pressure_sensor, SENSOR_CHAN_PRESS, &pressure);
+	if (ret < 0) {
+		printf("Cannot read pressure channel: %d\n", ret);
+		return;
+	}
+
+	/* Get temperature channel */
+	ret = sensor_channel_get(pressure_sensor, SENSOR_CHAN_AMBIENT_TEMP, &temp);
+	if (ret < 0) {
+		printf("Cannot read temperature channel: %d\n", ret);
+		return;
+	}
 
 	/* Only stream sensor data if connected */
 	if (golioth_client_is_connected(client)) {
@@ -70,7 +81,7 @@ void app_sensors_read_and_stream(void)
 		ZCBOR_STATE_E(zse, 1, cbor_buf, sizeof(cbor_buf), 1);
 
 		bool ok = zcbor_map_start_encode(zse, 1) && zcbor_tstr_put_lit(zse, "counter") &&
-			  zcbor_uint32_put(zse, counter) && zcbor_map_end_encode(zse, 1);
+			  zcbor_float16_put(zse, sensor_value_to_float(&pressure)) && zcbor_map_end_encode(zse, 1);
 
 		if (!ok) {
 			LOG_ERR("Failed to encode CBOR.");
@@ -79,7 +90,7 @@ void app_sensors_read_and_stream(void)
 
 		size_t cbor_size = zse->payload - cbor_buf;
 
-		LOG_DBG("Streaming counter: %d", counter);
+		LOG_DBG("Streaming observation: %d", obs);
 
 		/* Stream data to Golioth */
 		err = golioth_stream_set_async(client, "sensor", GOLIOTH_CONTENT_TYPE_CBOR,
@@ -88,25 +99,11 @@ void app_sensors_read_and_stream(void)
 			LOG_ERR("Failed to send sensor data to Golioth: %d", err);
 		}
 	} else {
-		LOG_DBG("No connection available, skipping streaming counter: %d", counter);
+		LOG_DBG("No connection available, skipping streaming observation: %d", obs);
 	}
 
-	/* Golioth custom hardware for demos */
-	IF_ENABLED(CONFIG_LIB_OSTENTUS, (
-		/* Update slide values on Ostentus
-		 *  -values should be sent as strings
-		 *  -use the enum from app_sensors.h for slide key values
-		 */
-		char sbuf[32];
-
-		snprintk(sbuf, sizeof(sbuf), "%d", counter);
-		ostentus_slide_set(o_dev, UP_COUNTER, sbuf, strlen(sbuf));
-		snprintk(sbuf, sizeof(sbuf), "%d", 65535 - counter);
-		ostentus_slide_set(o_dev, DN_COUNTER, sbuf, strlen(sbuf));
-	));
-
 	/* Increment for the next run */
-	++counter;
+	++obs;
 }
 
 void app_sensors_set_client(struct golioth_client *sensors_client)
