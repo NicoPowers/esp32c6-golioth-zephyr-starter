@@ -9,30 +9,60 @@ ESP32-C6 firmware built with Zephyr RTOS and MCUboot.
 ## Local Setup
 
 > [!IMPORTANT]
-> Do not clone this repo using git. Zephyr's `west` meta tool should be
+> Do not clone this repo directly using `git`. Zephyr's `west` meta tool should be
 > used to set up your local workspace.
 
 ### Prerequisites
 
-- [Zephyr SDK 0.17.4](https://github.com/zephyrproject-rtos/sdk-ng/releases/tag/v0.17.4) with RISC-V toolchain
+Ensure you have at least these versions of these tools:
+
 - Python 3.10+
 - CMake 3.20+
-- [direnv](https://direnv.net/)
 
 ### Initialize workspace
 
+Copy and paste these one at a time:
+
 ```shell
-mkdir ~/radon-fan-alarm && cd ~/radon-fan-alarm
-west init -m git@github.com:NicoPowers/radon-fan-alarm-firmware.git
+# Install and enable `direnv` utility if needed
+if ! command -v direnv > /dev/null; then
+    sudo apt-get install direnv
+fi
 
-echo "layout python3" > .envrc
-direnv allow
+if ! grep -q 'direnv hook bash' ~/.bashrc; then
+    echo 'eval "$(direnv hook bash)"' >> ~/.bashrc
+    . ~/.bashrc
+fi
+```
 
-pip install west
-west update
-west blobs fetch hal_espressif
-west zephyr-export
-west packages pip --install
+```shell
+# Create Zephyr project directory and setup Python venv
+proj_dir=radon-fan-alarm
+if [ -e "$proj_dir" ]; then
+    echo "$proj_dir already exists, not continuing!"
+else
+    mkdir radon-fan-alarm && \
+    cd radon-fan-alarm && \
+    echo "layout python3" > .envrc && \
+    direnv allow
+fi
+```
+
+```shell
+# Download and setup Zephyr project and toolchain
+pip install west && \
+west init -m git@github.com:NicoPowers/radon-fan-alarm-firmware.git && \
+west update && \
+west zephyr-export && \
+west packages pip --install && \
+west blobs fetch hal_espressif && \
+west sdk install --toolchain riscv64-zephyr-elf --version 0.17.4 && \
+west config build.board_warn false
+```
+
+```shell
+# Build the Zephyr app
+west build -p always --sysbuild app
 ```
 
 ## Building
@@ -42,6 +72,12 @@ is configured in `app/sysbuild/CMakeLists.txt`, so no `-b` flag is needed.
 
 ```shell
 west build -p always --sysbuild app
+```
+
+Alternatively, if your current working directory is `app`, do:
+
+```shell
+west build -p always --sysbuild
 ```
 
 ## Flashing
