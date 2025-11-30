@@ -1,10 +1,13 @@
-# Radon Fan Alarm Firmware
+# esp32c6-golioth-zephyr-starter
 
 ESP32-C6 firmware built with Zephyr RTOS and MCUboot.
 
 ## Supported Hardware
 
 - ESP32-C6 DevKitC (4MB flash)
+
+> [!NOTE]
+> The board overlay (`boards/esp32c6_devkitc_esp32c6_hpcore.overlay`) for LEDs and pressure sensor is just an example, as this was created for a custom PCB based on the ESP32-C6 WROOM-N4.
 
 ## Local Setup
 
@@ -37,12 +40,12 @@ fi
 
 ```shell
 # Create Zephyr project directory and setup Python venv
-proj_dir=radon-fan-alarm
+proj_dir=esp32c6-golioth-zephyr-starter
 if [ -e "$proj_dir" ]; then
     echo "$proj_dir already exists, not continuing!"
 else
-    mkdir radon-fan-alarm && \
-    cd radon-fan-alarm && \
+    mkdir esp32c6-golioth-zephyr-starter && \
+    cd esp32c6-golioth-zephyr-starter && \
     echo "layout python3" > .envrc && \
     direnv allow
 fi
@@ -51,7 +54,7 @@ fi
 ```shell
 # Download and setup Zephyr project and toolchain
 pip install west && \
-west init -m git@github.com:NicoPowers/radon-fan-alarm-firmware.git && \
+west init -m git@github.com:NicoPowers/esp32c6-golioth-zephyr-starter.git && \
 west update && \
 west zephyr-export && \
 west packages pip --install && \
