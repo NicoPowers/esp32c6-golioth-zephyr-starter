@@ -1,0 +1,69 @@
+# Build and push custom Zephyr build container to GHCR
+name: Build Container
+
+on:
+  push:
+    paths:
+      - '.github/docker/**'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_VERSION: "1"
+
+jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      docker_changed: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.docker }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            docker:
+              - '.github/docker/**'
+
+  build-container:
+    needs: check-changes
+    if: needs.check-changes.outputs.docker_changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set lowercase image name
+        id: image
+        run: echo "name=$(echo ${{ env.REGISTRY }}/${{ github.repository_owner }}/zephyr-riscv | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if image tag already exists
+        id: check-tag
+        run: |
+          IMAGE="${{ steps.image.outputs.name }}:${{ env.IMAGE_VERSION }}"
+          if docker manifest inspect "$IMAGE" > /dev/null 2>&1; then
+            echo "::notice::Image tag ${{ env.IMAGE_VERSION }} already exists in GHCR. Skipping build."
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Image tag ${{ env.IMAGE_VERSION }} does not exist, proceeding with build"
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and push
+        if: steps.check-tag.outputs.exists == 'false'
+        uses: docker/build-push-action@v5
+        with:
+          context: .github/docker
+          push: true
+          tags: ${{ steps.image.outputs.name }}:${{ env.IMAGE_VERSION }}
