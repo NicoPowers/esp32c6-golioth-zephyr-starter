@@ -1,12 +1,10 @@
-# Copyright (c) 2022-2023 Golioth, Inc.
-# SPDX-License-Identifier: Apache-2.0
-
 cmake_minimum_required(VERSION 3.20.0)
+
+set(BOARD esp32c6_devkitc)
 
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
 project(rd_template)
-
 target_sources(app PRIVATE src/main.c)
 target_sources(app PRIVATE src/app_rpc.c)
 target_sources(app PRIVATE src/app_settings.c)
@@ -14,13 +12,9 @@ target_sources(app PRIVATE src/app_state.c)
 target_sources(app PRIVATE src/app_sensors.c)
 
 add_custom_command(
-    OUTPUT ${ZEPHYR_BINARY_DIR}/lfs.hex
-    COMMAND ${PYTHON_EXECUTABLE}
-      ${CMAKE_CURRENT_SOURCE_DIR}/generate-lfs-image.py
-      --build-dir ${APPLICATION_BINARY_DIR}
-)
+  OUTPUT ${ZEPHYR_BINARY_DIR}/lfs.hex
+  COMMAND
+    ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/generate-lfs-image.py
+    --build-dir ${APPLICATION_BINARY_DIR})
 
-add_custom_target(
-    lfs ALL
-    DEPENDS ${ZEPHYR_BINARY_DIR}/lfs.hex
-)
+add_custom_target(lfs ALL DEPENDS ${ZEPHYR_BINARY_DIR}/lfs.hex)

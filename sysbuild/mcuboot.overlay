@@ -1,0 +1,15 @@
+/*
+ * Copyright (c) 2025
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * MCUboot overlay for 4MB flash configuration
+ */
+
+#include <espressif/esp32c6/esp32c6_wroom_n4.dtsi>
+#include <espressif/partitions_0x0_default_4M.dtsi>
+
+/ {
+	chosen {
+		zephyr,code-partition = &boot_partition;
+	};
+};
