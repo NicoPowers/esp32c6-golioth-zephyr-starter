@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2022-2023 Golioth, Inc.
  *
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: MIT
  */
 
 #ifndef __APP_SENSORS_H__
